@@ -1,20 +1,37 @@
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function OAuthRow() {
+type Props = {
+  onGoogle?: () => void
+  onGitHub?: () => void
+  pending?: boolean
+}
+
+export function OAuthRow({ onGoogle, onGitHub, pending }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <Button
+        type="button"
         variant="outline"
+        disabled={pending}
+        onClick={onGitHub}
         className="h-11 rounded-none gap-2 border-foreground/15 hover:border-foreground/40"
       >
         <GitHubIcon />
         GitHub
       </Button>
       <Button
+        type="button"
         variant="outline"
+        disabled={pending}
+        onClick={onGoogle}
         className="h-11 rounded-none gap-2 border-foreground/15 hover:border-foreground/40"
       >
-        <GoogleIcon />
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <GoogleIcon />
+        )}
         Google
       </Button>
     </div>
@@ -47,12 +64,7 @@ function GitHubIcon() {
 
 function GoogleIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width="16"
-      height="16"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.45c-.28 1.46-1.13 2.7-2.4 3.53v2.94h3.88c2.27-2.09 3.56-5.18 3.56-8.71z"

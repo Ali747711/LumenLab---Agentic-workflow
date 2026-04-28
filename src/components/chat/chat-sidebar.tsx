@@ -9,7 +9,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 
 const recents = [
@@ -152,27 +153,46 @@ export function ChatSidebar({
         </>
       )}
 
-      <div className="mt-auto border-t p-3">
-        <button
-          className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-muted",
-            collapsed && "justify-center px-0"
-          )}
-        >
-          <Avatar className="size-7">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              AN
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-sm font-medium">Azamat N.</p>
-              <p className="truncate text-xs text-muted-foreground">Pro plan</p>
-            </div>
-          )}
-          {!collapsed && <Settings className="size-4 text-muted-foreground" />}
-        </button>
-      </div>
+      <UserBlock collapsed={collapsed} />
     </aside>
+  )
+}
+
+function UserBlock({ collapsed }: { collapsed: boolean }) {
+  const { user } = useAuth()
+  const name = user?.displayName || user?.email?.split("@")[0] || "Guest"
+  const initials = name
+    .split(/[\s.@_-]+/)
+    .map((s) => s[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+
+  return (
+    <div className="mt-auto border-t p-3">
+      <Link
+        to="/app/profile"
+        className={cn(
+          "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-muted",
+          collapsed && "justify-center px-0"
+        )}
+      >
+        <Avatar className="size-7">
+          {user?.photoURL && <AvatarImage src={user.photoURL} alt="" />}
+          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        {!collapsed && (
+          <div className="min-w-0 flex-1 text-left">
+            <p className="truncate text-sm font-medium">{name}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {user?.email ?? "Pro plan"}
+            </p>
+          </div>
+        )}
+        {!collapsed && <Settings className="size-4 text-muted-foreground" />}
+      </Link>
+    </div>
   )
 }

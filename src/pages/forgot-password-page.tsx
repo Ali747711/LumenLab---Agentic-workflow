@@ -1,19 +1,32 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowRight, Check, Mail } from "lucide-react"
+import { ArrowRight, Check, Mail, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthLayout } from "@/components/auth/auth-layout"
+import { useAuth, friendlyAuthError } from "@/lib/auth-context"
 
 export function ForgotPasswordPage() {
+  const { resetPassword } = useAuth()
   const [email, setEmail] = useState("")
   const [sent, setSent] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
-    setSent(true)
+    setError(null)
+    setPending(true)
+    try {
+      await resetPassword(email)
+      setSent(true)
+    } catch (err) {
+      setError(friendlyAuthError(err))
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -38,6 +51,13 @@ export function ForgotPasswordPage() {
         <SentState email={email} onReset={() => setSent(false)} />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="flex items-start gap-3 border border-clay/40 bg-clay/5 p-3 text-[13px]">
+              <AlertCircle className="mt-0.5 size-4 shrink-0 text-clay" />
+              <p>{error}</p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label
               htmlFor="email"
@@ -59,10 +79,20 @@ export function ForgotPasswordPage() {
 
           <Button
             type="submit"
+            disabled={pending}
             className="group h-11 w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
           >
-            Send reset link
-            <ArrowRight className="ml-1 size-4 transition group-hover:translate-x-0.5" />
+            {pending ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Sending…
+              </>
+            ) : (
+              <>
+                Send reset link
+                <ArrowRight className="ml-1 size-4 transition group-hover:translate-x-0.5" />
+              </>
+            )}
           </Button>
 
           <p className="text-[11px] leading-relaxed text-muted-foreground">

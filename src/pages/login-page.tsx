@@ -1,19 +1,53 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { ArrowRight, Eye, EyeOff } from "lucide-react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { ArrowRight, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { OAuthRow, OrDivider } from "@/components/auth/oauth-row"
+import { useAuth, friendlyAuthError } from "@/lib/auth-context"
+
+type LocationState = { from?: string }
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const [showPw, setShowPw] = useState(false)
+  const location = useLocation()
+  const { signInEmail, signInGoogle } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPw, setShowPw] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState<"email" | "google" | null>(null)
+
+  const dest = (location.state as LocationState | null)?.from ?? "/app/chat"
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    navigate("/app/chat")
+    setError(null)
+    setPending("email")
+    try {
+      await signInEmail(email, password)
+      navigate(dest, { replace: true })
+    } catch (err) {
+      setError(friendlyAuthError(err))
+    } finally {
+      setPending(null)
+    }
+  }
+
+  const handleGoogle = async () => {
+    setError(null)
+    setPending("google")
+    try {
+      await signInGoogle()
+      navigate(dest, { replace: true })
+    } catch (err) {
+      setError(friendlyAuthError(err))
+    } finally {
+      setPending(null)
+    }
   }
 
   return (
@@ -27,10 +61,12 @@ export function LoginPage() {
       footerText="No account yet?"
       footerLink={{ to: "/signup", label: "Create one" }}
     >
-      <OAuthRow />
+      <OAuthRow onGoogle={handleGoogle} pending={pending === "google"} />
       <OrDivider />
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {error && <ErrorAlert message={error} />}
+
         <div className="space-y-2">
           <Label
             htmlFor="email"
@@ -44,6 +80,8 @@ export function LoginPage() {
             required
             autoComplete="email"
             placeholder="you@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="h-11 rounded-none border-foreground/15 focus-visible:border-foreground"
           />
         </div>
@@ -70,6 +108,8 @@ export function LoginPage() {
               required
               autoComplete="current-password"
               placeholder="••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="h-11 rounded-none border-foreground/15 pr-10 focus-visible:border-foreground"
             />
             <button
@@ -89,10 +129,20 @@ export function LoginPage() {
 
         <Button
           type="submit"
+          disabled={pending !== null}
           className="group h-11 w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
         >
-          Sign in
-          <ArrowRight className="ml-1 size-4 transition group-hover:translate-x-0.5" />
+          {pending === "email" ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Signing in…
+            </>
+          ) : (
+            <>
+              Sign in
+              <ArrowRight className="ml-1 size-4 transition group-hover:translate-x-0.5" />
+            </>
+          )}
         </Button>
       </form>
 
@@ -101,5 +151,14 @@ export function LoginPage() {
         SOC 2 Type II · Encrypted at rest
       </div>
     </AuthLayout>
+  )
+}
+
+function ErrorAlert({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-3 border border-clay/40 bg-clay/5 p-3 text-[13px]">
+      <AlertCircle className="mt-0.5 size-4 shrink-0 text-clay" />
+      <p>{message}</p>
+    </div>
   )
 }

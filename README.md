@@ -10,12 +10,20 @@ purposes.
 
 ## Pages
 
-| Route        | Description                                                   |
-| ------------ | ------------------------------------------------------------- |
-| `/`          | Landing — manifesto hero, product tour, customer story, social proof marquee, comparison table, pricing, CTA |
-| `/pricing`   | Dedicated pricing page with FAQ                               |
-| `/changelog` | Public changelog with tagged entries (`[FEATURE]`, `[FIX]`, `[BREAKING]`, `[PERF]`, `[DOCS]`) |
-| `/app/chat`  | Claude-style chat UI with collapsible sidebar, recents, projects, and an animated composer |
+| Route               | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| `/`                 | Landing — manifesto hero, product tour, customer story, social proof marquee, comparison table, pricing, CTA |
+| `/pricing`          | Dedicated pricing page with FAQ                               |
+| `/changelog`        | Public changelog with tagged entries (`[FEATURE]`, `[FIX]`, `[BREAKING]`, `[PERF]`, `[DOCS]`) |
+| `/login`            | Sign in (Firebase Auth — email / password + Google)           |
+| `/signup`           | Create account (Firebase Auth — email / password + Google)    |
+| `/forgot-password`  | Send password reset link (Firebase Auth)                      |
+| `/app/chat` *       | Claude-style chat UI with collapsible sidebar                 |
+| `/app/profile` *    | User profile — display name, account info, sign out           |
+
+Routes marked with * are protected by `<ProtectedRoute>`; unauthenticated
+visitors are redirected to `/login` and bounced back to their original
+destination after signing in.
 
 ## Stack
 
@@ -31,11 +39,34 @@ purposes.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # type-check + production build
-npm run preview  # serve the build locally
-npm run lint     # eslint
+cp .env.example .env   # then fill in your Firebase keys
+npm run dev            # http://localhost:5173
+npm run build          # type-check + production build
+npm run preview        # serve the build locally
+npm run lint           # eslint
 ```
+
+### Firebase setup
+
+This project uses [Firebase Authentication](https://firebase.google.com/docs/auth)
+for sign-in / sign-up.
+
+1. Create a Firebase project at <https://console.firebase.google.com>.
+2. **Authentication → Sign-in method** — enable **Email/Password** and **Google**.
+3. **Project Settings → General → Your apps** — register a web app and copy the
+   config values into `.env` (template in `.env.example`).
+4. Restart `npm run dev` so Vite picks up the new env vars.
+
+Environment variables (all required):
+
+| Var                                  | Source                                      |
+| ------------------------------------ | ------------------------------------------- |
+| `VITE_FIREBASE_API_KEY`              | Firebase Console → Project Settings         |
+| `VITE_FIREBASE_AUTH_DOMAIN`          | `<project>.firebaseapp.com`                 |
+| `VITE_FIREBASE_PROJECT_ID`           | Firebase Console                            |
+| `VITE_FIREBASE_STORAGE_BUCKET`       | `<project>.appspot.com`                     |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID`  | Firebase Console                            |
+| `VITE_FIREBASE_APP_ID`               | Firebase Console                            |
 
 ## Project structure
 
