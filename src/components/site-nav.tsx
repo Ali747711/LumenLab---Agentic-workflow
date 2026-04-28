@@ -55,14 +55,14 @@ export function SiteNav() {
           </a>
           <ThemeToggle />
           <Button asChild variant="ghost" size="sm" className="rounded-none">
-            <Link to="/app/chat">Sign in</Link>
+            <Link to="/login">Sign in</Link>
           </Button>
           <Button
             asChild
             size="sm"
             className="rounded-none bg-foreground text-background hover:bg-foreground/90"
           >
-            <Link to="/app/chat">$ ./start →</Link>
+            <Link to="/signup">$ ./start →</Link>
           </Button>
         </div>
       </nav>
